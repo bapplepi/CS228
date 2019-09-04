@@ -1,8 +1,10 @@
 from pygameWindow import PYGAME_WINDOW
 
-window = PYGAME_WINDOW()
+pygameWindow = PYGAME_WINDOW()
 
-print(window)
+print(pygameWindow)
 
-#while True:
-#	print(’Draw something.’)
+while True:
+	pygameWindow.Prepare()
+	pass
+	pygameWindow.Reveal()
