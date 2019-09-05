@@ -1,3 +1,9 @@
+import sys
+sys.path.insert(0, '../LeapSDK/lib/')
+import Leap
+
+controller = Leap.Controller()
+
 from pygameWindow import PYGAME_WINDOW
 import random
 
@@ -21,7 +27,10 @@ def Perturb_Circle_Position():
 		y += 1
 
 while True:
-	Perturb_Circle_Position()
+	frame = controller.frame()
+	if len(frame.hands) > 0:
+		print "hand detected."
+	"""Perturb_Circle_Position()
 	pygameWindow.Prepare()
 	pygameWindow.Draw_Black_Circle(x,y)
-	pygameWindow.Reveal()
+	pygameWindow.Reveal()"""
