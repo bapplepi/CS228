@@ -4,6 +4,7 @@ from constants import pygameWindowWidth, pygameWindowDepth
 from pygameWindow_Del03 import PYGAME_WINDOW
 import random
 import numpy as np
+import pickle
 
 class DELIVERABLE:
 	def __init__(self):
@@ -17,6 +18,7 @@ class DELIVERABLE:
 		self.previousNumberOfHands = 0
 		self.currentNumberOfHands = 0
 		self.gestureData = np.zeros((5,4,6),dtype='f')
+		self.numGestures = 0
 		self.pygameWindow = PYGAME_WINDOW()
 
 
@@ -27,6 +29,13 @@ class DELIVERABLE:
 			newX = float(newMin) + float(newMax - newMin) * float(x - oldMin)/float(oldMax - oldMin)
 
 		return newX
+
+
+	def Save_Gesture(self):
+		pickleOut = open("userData/gesture" + str(self.numGestures) + ".p","wb")
+		pickle.dump(self.gestureData, pickleOut)
+		pickleOut.close()
+		self.numGestures += 1
 
 
 	def Handle_Vector_From_Leap(self, v):
@@ -60,7 +69,6 @@ class DELIVERABLE:
 			self.gestureData[i,j,3] = bone.next_joint[0]
 			self.gestureData[i,j,4] = bone.next_joint[1]
 			self.gestureData[i,j,5] = bone.next_joint[2]
-			print(self.gestureData)
 
 		baseCoords = self.Handle_Vector_From_Leap(base)
 		tipCoords = self.Handle_Vector_From_Leap(tip)
@@ -81,6 +89,9 @@ class DELIVERABLE:
 		fingers = hand.fingers
 		for i in range(0,5):
 			self.Handle_Finger(fingers[i], i)
+		if self.Recording_Is_Ending():
+			print(self.gestureData)
+			self.Save_Gesture()
 
 	def Recording_Is_Ending(self):
 		if self.currentNumberOfHands == 1 and self.previousNumberOfHands == 2:
