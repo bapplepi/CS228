@@ -3,6 +3,7 @@ from Leap import Finger
 from constants import pygameWindowWidth, pygameWindowDepth
 from pygameWindow_Del03 import PYGAME_WINDOW
 import random
+import numpy as np
 
 class DELIVERABLE:
 	def __init__(self):
@@ -13,6 +14,9 @@ class DELIVERABLE:
 		self.xMax = -1000.0
 		self.yMin = 1000.0
 		self.yMax = -1000.0
+		self.previousNumberOfHands = 0
+		self.currentNumberOfHands = 0
+		self.gestureData = np.zeros((5,4,6),dtype='f')
 		self.pygameWindow = PYGAME_WINDOW()
 
 
@@ -30,49 +34,69 @@ class DELIVERABLE:
 		vX = int(v[0])
 		vY = int(v[1])
 
-		if vX < xMin:
-			xMin = vX
-		elif vX > xMax:
-			xMax = vX
-		if vY < yMin:
-			yMin = vY
-		elif vY > yMax:
-			yMax = vY
+		if vX < self.xMin:
+			self.xMin = vX
+		elif vX > self.xMax:
+			self.xMax = vX
+		if vY < self.yMin:
+			self.yMin = vY
+		elif vY > self.yMax:
+			self.yMax = vY
 
-		pygameX = Scale(vX, xMin, xMax, 0, pygameWindowWidth)
-		pygameY = Scale(vY, yMin, yMax, pygameWindowDepth, 0)
+		pygameX = self.Scale(vX, self.xMin, self.xMax, 0, pygameWindowWidth)
+		pygameY = self.Scale(vY, self.yMin, self.yMax, pygameWindowDepth, 0)
 			
 		return (pygameX,pygameY)
 
 
-	def Handle_Bone(self, bone, b):
+	def Handle_Bone(self, bone, i, j):
 		base = bone.prev_joint
 		tip = bone.next_joint
-		baseCoords = Handle_Vector_From_Leap(base)
-		tipCoords = Handle_Vector_From_Leap(tip)
-		pygameWindow.Draw_Black_Line(baseCoords, tipCoords, 4-b)
 
+		if self.Recording_Is_Ending():
+			self.gestureData[i,j,0] = bone.prev_joint[0]
+			self.gestureData[i,j,1] = bone.prev_joint[1]
+			self.gestureData[i,j,2] = bone.prev_joint[2]
+			self.gestureData[i,j,3] = bone.next_joint[0]
+			self.gestureData[i,j,4] = bone.next_joint[1]
+			self.gestureData[i,j,5] = bone.next_joint[2]
+			print(self.gestureData)
 
-	def Handle_Finger(self, finger):
-		for b in range(0,3):
-			Handle_Bone(finger.bone(b), b)
+		baseCoords = self.Handle_Vector_From_Leap(base)
+		tipCoords = self.Handle_Vector_From_Leap(tip)
+		if self.currentNumberOfHands == 1:
+			self.pygameWindow.Draw_Line(baseCoords, tipCoords, 4-j, "green")
+		else:
+			self.pygameWindow.Draw_Line(baseCoords, tipCoords, 4-j, "red")
+		
+
+	def Handle_Finger(self, finger, i):
+		for j in range(0,4):
+			self.Handle_Bone(finger.bone(j), i, j)
 
 
 	def Handle_Frame(self, frame):
 		global x, y, xMin, xMax, yMin, yMax
 		hand = frame.hands[0]
 		fingers = hand.fingers
-		for finger in fingers:
-			Handle_Finger(finger)
+		for i in range(0,5):
+			self.Handle_Finger(fingers[i], i)
+
+	def Recording_Is_Ending(self):
+		if self.currentNumberOfHands == 1 and self.previousNumberOfHands == 2:
+			return True
 
 
 	def Run_Once(self):
 		self.pygameWindow.Prepare()
 		frame = self.controller.frame()
 		if len(frame.hands) > 0:
-			Handle_Frame(frame)
+			self.Handle_Frame(frame)
+		self.previousNumberOfHands = self.currentNumberOfHands
+		self.currentNumberOfHands = len(frame.hands)
 		self.pygameWindow.Reveal()
+
 
 	def Run_Forever(self):
 		while True:
-			Run_Once(self)
+			self.Run_Once()
