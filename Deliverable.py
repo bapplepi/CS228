@@ -5,9 +5,12 @@ from pygameWindow_Del03 import PYGAME_WINDOW
 import random
 import numpy as np
 import pickle
+import os
+import shutil
 
 class DELIVERABLE:
 	def __init__(self):
+		self.Clear_Directory()
 		self.controller = Leap.Controller()
 		self.x = 500
 		self.y = 400
@@ -20,6 +23,11 @@ class DELIVERABLE:
 		self.gestureData = np.zeros((5,4,6),dtype='f')
 		self.numGestures = 0
 		self.pygameWindow = PYGAME_WINDOW()
+
+
+	def Clear_Directory(self):
+		shutil.rmtree("userData")
+		os.mkdir("userData")
 
 
 	def Scale(self, x, oldMin, oldMax, newMin, newMax):
@@ -41,7 +49,7 @@ class DELIVERABLE:
 	def Handle_Vector_From_Leap(self, v):
 		global xMin,xMax,yMin,yMax
 		vX = int(v[0])
-		vY = int(v[1])
+		vY = -int(v[2])
 
 		if vX < self.xMin:
 			self.xMin = vX

@@ -21,4 +21,6 @@ class PYGAME_WINDOW:
 			color = (255,0,0)
 		elif(color == "green"):
 			color = (0,255,0)
+		elif(color == "blue"):
+			color = (0,0,255)
 		pygame.draw.line(self.screen, color, (xBase, yBase), (xTip, yTip), width)
